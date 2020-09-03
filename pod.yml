@@ -1,0 +1,29 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: webserver
+spec:
+  imagesPullSecrets:
+    - name: dockercred
+  volumes:
+    - name: shared-logs
+      emptyDir: {}
+
+  containers:
+    - name: main-app
+      image: muralidevops18/vault-jq
+      volumeMounts:
+        - name: shared-logs
+          mountPath: /var/log
+
+    - name: sidecar-container
+      image: muralidevops18/vault-jq
+      command:
+            - "sh"
+            - "-c"
+            - > 
+              curl --header "X-Vault-Token: $VAULT_TOKEN" --request GET http://34.121.88.203:8200/v1/kv-v1/eng/apikey/Google | jq -r '.data."key"' >/var/log.self.key;
+      
+      volumeMounts:
+        - name: shared-logs
+          mountPath: /var/log
